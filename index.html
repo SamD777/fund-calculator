@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement fund Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: hsl(0, 0%, 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 50%;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(246, 242, 242, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            color: #fff;
+            background: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Retirement fund Calculator</h1>
+        <form id="investment-form">
+            <label for="initial_investment">Initial Investment Amount (₹):</label>
+            <input type="number" id="initial_investment" name="initial_investment" required>
+            
+            <label for="annual_expenses">Annual Expenses (₹):</label>
+            <input type="number" id="annual_expenses" name="annual_expenses" required>
+            
+            <label for="annual_return_rate">Annual Return Rate (%):</label>
+            <input type="number" id="annual_return_rate" name="annual_return_rate" step="0.01" required>
+            
+            <label for="inflation_rate">Inflation Rate (%):</label>
+            <input type="number" id="inflation_rate" name="inflation_rate" step="0.01" required>
+            
+            <label for="years">Number of Years:</label>
+            <input type="number" id="years" name="years" required>
+            
+            <button type="submit">Calculate</button>
+        </form>
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        document.getElementById('investment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const initialInvestment = parseFloat(document.getElementById('initial_investment').value);
+            const annualExpenses = parseFloat(document.getElementById('annual_expenses').value);
+            const annualReturnRate = parseFloat(document.getElementById('annual_return_rate').value) / 100;
+            const inflationRate = parseFloat(document.getElementById('inflation_rate').value) / 100;
+            const years = parseInt(document.getElementById('years').value);
+
+            let investment = initialInvestment;
+            let expenses = annualExpenses;
+            let results = [];
+
+            for (let year = 1; year <= years; year++) {
+                investment -= expenses;
+                if (investment < 0) {
+                    results.push({
+                        year: year,
+                        investmentStart: 0,
+                        expense: expenses,
+                        investmentGrowth: 0,
+                        investmentEnd: 0,
+                        depleted: true
+                    });
+                    break;
+                }
+                let investmentGrowth = investment * (1 + annualReturnRate);
+                results.push({
+                    year: year,
+                    investmentStart: investment,
+                    expense: expenses,
+                    investmentGrowth: investmentGrowth,
+                    investmentEnd: investmentGrowth,
+                    depleted: false
+                });
+                investment = investmentGrowth;
+                expenses *= (1 + inflationRate);
+            }
+
+            let resultsHtml = '<table><tr><th>Year</th><th>Investment Start (₹)</th><th>Expense (₹)</th><th>Investment Growth (₹)</th><th>Investment End (₹)</th></tr>';
+            results.forEach(function(row) {
+                if (row.depleted) {
+                    resultsHtml += `<tr>
+                        <td>${row.year}</td>
+                        <td colspan="4" style="color:red;">Funds deplete in this year.</td>
+                    </tr>`;
+                } else {
+                    resultsHtml += `<tr>
+                        <td>${row.year}</td>
+                        <td>${row.investmentStart.toFixed(2)}</td>
+                        <td>${row.expense.toFixed(2)}</td>
+                        <td>${row.investmentGrowth.toFixed(2)}</td>
+                        <td>${row.investmentEnd.toFixed(2)}</td>
+                    </tr>`;
+                }
+            });
+            resultsHtml += '</table>';
+            document.getElementById('results').innerHTML = resultsHtml;
+        });
+    </script>
+</body>
+</html>
